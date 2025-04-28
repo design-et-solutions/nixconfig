@@ -30,6 +30,7 @@ in {
       enable = true;
       logRefusedConnections = true;
       allowedTCPPorts = [ 80 443 8080 ];
+      allowedUDPPorts = [ 51200 ];
     };
   };
 
