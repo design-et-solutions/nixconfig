@@ -69,6 +69,11 @@
           modules = [ ./hosts/enma ];
           specialArgs = { inherit inputs outputs; };
         };
+        # Work
+        "4757-trunk" = lib.nixosSystem {
+          modules = [ ./hosts/4757-trunk ];
+          specialArgs = { inherit inputs outputs; };
+        };
       };
 
       # Home Manager system configuration
@@ -82,6 +87,12 @@
         # Main laptop
         "yc@enma" = lib.homeManagerConfiguration {
           modules = [ ./home/users/yc/enma.nix ./home/nixpkgs.nix ];
+          pkgs = pkgsFor.x86_64-linux;
+          extraSpecialArgs = { inherit inputs outputs; };
+        };
+        # Main laptop
+        "x11@4757-trunk" = lib.homeManagerConfiguration {
+          modules = [ ./home/users/x11/common.nix ./home/nixpkgs.nix ];
           pkgs = pkgsFor.x86_64-linux;
           extraSpecialArgs = { inherit inputs outputs; };
         };
