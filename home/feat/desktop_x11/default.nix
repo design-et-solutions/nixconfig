@@ -80,14 +80,16 @@
         <gesture type="PINCH" fingers="2" direction="IN">
           <action type="RUN_COMMAND">
             <repeat>true</repeat>
-            <command>xdotool key Ctrl+Up</command>
+            <command>xdotool click 4</command>
+            <decreaseCommand>xdotool click 5</decreaseCommand>
           </action>
         </gesture>
          
         <gesture type="PINCH" fingers="2" direction="OUT">
           <action type="RUN_COMMAND">
             <repeat>true</repeat>
-            <command>xdotool key Ctrl+Down</command>
+            <command>xdotool click 5</command>
+            <decreaseCommand>xdotool click 4</decreaseCommand>
           </action>
         </gesture>
 
