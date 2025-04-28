@@ -98,21 +98,28 @@
         </gesture>
       </application>
 
-      <application name="firefox-2">
+      <application name="firefox-1">
         <gesture type="SWIPE" fingers="3" direction="RIGHT">
-            <action type="RUN_COMMAND">
-              <repeat>true</repeat>
-              <command>xdotool key Tab</command>
-            </action>
+          <action type="RUN_COMMAND">
+            <command>xdotool key Tab</command>
+          </action>
+        </gesture>
+        <gesture type="SWIPE" fingers="3" direction="LEFT">
+          <action type="RUN_COMMAND">
+            <command>xdotool key Tab</command>
+          </action>
         </gesture>
       </application>
 
       <application name="SightCohoma">
+        <gesture type="SWIPE" fingers="3" direction="RIGHT">
+          <action type="RUN_COMMAND">
+            <command>xdotool key Tab</command>
+          </action>
+        </gesture>
         <gesture type="SWIPE" fingers="3" direction="LEFT">
-          <action type="SEND_KEYS">
-            <repeat>true</repeat>
-            <modifiers>xdotool key Tab</modifiers>
-            <keys>1</keys>
+          <action type="RUN_COMMAND">
+            <command>xdotool key Tab</command>
           </action>
         </gesture>
       </application>

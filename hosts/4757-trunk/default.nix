@@ -62,9 +62,6 @@ in {
     qt5.qtbase
     qt5.qttools
 
-    # X11
-    xorg.xprop
-
     # Debug
     tcpdump
   ];
