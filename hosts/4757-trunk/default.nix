@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ modulesPath, inputs, pkgs, ... }:
 let hostname = "4757-trunk";
 in {
   imports = [
@@ -12,6 +12,12 @@ in {
     ../../nixos/users/x11
 
     ../../nixos/feat/desktop_x11
+
+    (modulesPath + "/profiles/qemu-guest.nix")
+  ];
+
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFD6+Ufbd/7QLj5hsAEP7N80gVgaLVsSl+R6m2MhggeV yc@enma"
   ];
 
   time.timeZone = "Europe/Paris";
@@ -31,14 +37,15 @@ in {
 
   virtualisation.docker.enable = true;
 
-  services.touchegg.enable = true;
+  # services.touchegg.enable = true;
 
   environment.systemPackages = with pkgs; [
-    xdotool
     libinput-gestures
-    touchegg
-    wmctrl
+    libinput
     unclutter-xfixes
+    wmctrl
+
+    xdotool
     nginx
     ffmpeg
     gst_all_1.gstreamer
@@ -58,11 +65,14 @@ in {
     fade = true;
     shadow = true;
     settings = {
+      vsync = true;
       corner-radius = 5;
       blur-background = true;
       blur-kern = "7x7box";
     };
   };
+
+  services.xserver.videoDrivers = [ "intel" ];
 
   systemd.services."rtsp-to-hls" = {
     # enable = false;
@@ -129,7 +139,6 @@ in {
   };
 
   systemd.services."precision-landing" = {
-    enable = false;
     description = "Run precision landing";
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {

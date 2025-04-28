@@ -7,7 +7,10 @@
     };
     xserver = {
       desktopManager.xterm.enable = false; # Disable default terminal
-      displayManager = { lightdm.enable = true; };
+      displayManager = {
+        lightdm.enable = true;
+        gdm.enable = false;
+      };
       enable = true;
       windowManager.i3 = {
         enable = true;
