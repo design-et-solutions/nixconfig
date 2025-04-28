@@ -37,10 +37,9 @@ in {
 
   virtualisation.docker.enable = true;
 
-  # services.touchegg.enable = true;
+  services.touchegg.enable = true;
 
   environment.systemPackages = with pkgs; [
-    libinput-gestures
     libinput
     unclutter-xfixes
     wmctrl
@@ -156,10 +155,6 @@ in {
     # Disable screen blanking
     xset -dpms
     xset s noblank
-
-    # > xinput list
-    xinput map-to-output 10 HDMI-1
-    xinput map-to-output 11 HDMI-2
   '';
 
   systemd.services."thales-sight" = {

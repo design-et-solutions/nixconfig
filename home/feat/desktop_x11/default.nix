@@ -20,8 +20,8 @@
       }
 
       # Define workspaces
-      workspace 1 output HDMI-1
-      workspace 2 output HDMI-2
+      workspace 1 output HDMI1
+      workspace 2 output HDMI2
 
       # Assign Firefox instances to specific workspaces
       assign [class="firefox-1"] 1
@@ -37,6 +37,15 @@
       bindsym Shift+Tab focus right; fullscreen disable; focus right; fullscreen enable
     '';
     config.startup = [
+      {
+        command =
+          "xrandr --output HDMI1 --primary --auto --output HDMI2 --right-of HDMI1 --auto";
+        always = true;
+      }
+      {
+        command = "/home/x11/map_touchscreens.sh";
+        always = true;
+      }
       {
         command = "unclutter --timeout 0 --jitter 0 --hide-on-touch";
         always = true;
@@ -65,20 +74,20 @@
   home.file.".config/touchegg/touchegg.conf".text = ''
     <touchégg>
       <settings>
-        <property name="composed_gestures_time">100</property>
+        <property name="composed_gestures_time">200</property>
       </settings>
       <application name="All">
         <gesture type="PINCH" fingers="2" direction="IN">
           <action type="RUN_COMMAND">
             <repeat>true</repeat>
-            <command>xdotool click 5</command>
+            <command>xdotool key Ctrl+Up</command>
           </action>
         </gesture>
          
         <gesture type="PINCH" fingers="2" direction="OUT">
           <action type="RUN_COMMAND">
             <repeat>true</repeat>
-            <command>xdotool click 4</command>
+            <command>xdotool key Ctrl+Down</command>
           </action>
         </gesture>
 
@@ -87,22 +96,41 @@
         </gesture>
       </application>
 
-      <gesture type="SWIPE" fingers="3" direction="RIGHT">
-          <action type="RUN_COMMAND">
-            <repeat>true</repeat>
-            <command>xdotool key Tab</command>
-          </action>
-      </gesture>
+      <application name="firefox-2">
+        <gesture type="SWIPE" fingers="3" direction="RIGHT">
+            <action type="RUN_COMMAND">
+              <repeat>true</repeat>
+              <command>xdotool key Tab</command>
+            </action>
+        </gesture>
+      </application>
 
-      <gesture type="SWIPE" fingers="3" direction="LEFT">
-        <action type="SEND_KEYS">
-          <repeat>true</repeat>
-          <modifiers>xdotool key Tab</modifiers>
-          <keys>1</keys>
-        </action>
-      </gesture>
+      <application name="SightCohoma">
+        <gesture type="SWIPE" fingers="3" direction="LEFT">
+          <action type="SEND_KEYS">
+            <repeat>true</repeat>
+            <modifiers>xdotool key Tab</modifiers>
+            <keys>1</keys>
+          </action>
+        </gesture>
+      </application>
     </touchégg>
   '';
+  # <gesture type="PINCH" fingers="2" direction="IN">
+  #   <action type="RUN_COMMAND">
+  #     <repeat>true</repeat>
+  #     <command>xdotool click 4</command>
+  #     <decreaseCommand>xdotool click 5</decreaseCommand>
+  #   </action>
+  # </gesture>
+
+  # <gesture type="PINCH" fingers="2" direction="OUT">
+  #   <action type="RUN_COMMAND">
+  #     <repeat>true</repeat>
+  #     <command>xdotool click 5</command>
+  #     <decreaseCommand>xdotool click 4</decreaseCommand>
+  #   </action>
+  # </gesture>
 
   home.file."start_precision_landing.sh" = {
     text = ''
@@ -170,4 +198,8 @@
     executable = true;
   };
 
+  home.file."map_touchscreens.sh" = {
+    source = ./map_touchscreens.sh;
+    executable = true;
+  };
 }
