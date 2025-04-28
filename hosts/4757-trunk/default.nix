@@ -47,6 +47,8 @@ in {
     xdotool
     nginx
     ffmpeg
+
+    # Gstreamer
     gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-good
@@ -54,9 +56,22 @@ in {
     gst_all_1.gst-plugins-ugly
     gst_all_1.gst-libav
     gst_all_1.gst-vaapi
+
+    # QT
     qt5.qtbase
     qt5.qttools
+
+    # X11
+    xorg.xprop
+
+    # Debug
+    tcpdump
   ];
+
+  environment.sessionVariables = {
+    GST_PLUGIN_SYSTEM_PATH_1_0 =
+      "${pkgs.gst_all_1.gst-plugins-base}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-good}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-ugly}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-libav}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-vaapi}/lib/gstreamer-1.0";
+  };
 
   services.picom = {
     enable = true;
