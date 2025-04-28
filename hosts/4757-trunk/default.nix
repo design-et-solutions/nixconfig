@@ -19,6 +19,9 @@ in {
   users.users.root.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFD6+Ufbd/7QLj5hsAEP7N80gVgaLVsSl+R6m2MhggeV yc@enma"
   ];
+  users.users.x11.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFD6+Ufbd/7QLj5hsAEP7N80gVgaLVsSl+R6m2MhggeV yc@enma"
+  ];
 
   time.timeZone = "Europe/Paris";
 
@@ -86,16 +89,29 @@ in {
 
   services.xserver.videoDrivers = [ "intel" ];
 
-  systemd.services."rtsp-to-hls" = {
-    # enable = false;
-    description = "Middleware RTSP to HLS";
+  systemd.services."rtsp-to-hls-simu" = {
+    description = "Middleware RTSP to HLS (Simu)";
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls";
-      # ExecStart = "${pkgs.ffmpeg}/bin/ffmpeg -fflags nobuffer -flags low_delay -strict experimental -i rtsp://192.168.100.134:8554/vivatech-simu -c:v libx264 -preset ultrafast -tune zerolatency -x264-params keyint=20:min-keyint=20:scenecut=0 -g 20 -sc_threshold 0 -start_number 0 -an -f hls -hls_time 2 -hls_list_size 10 -hls_flags delete_segments+append_list+omit_endlist -hls_delete_threshold 2 /var/www/html/hls/stream.m3u8";
-      ExecStart =
-        "${pkgs.ffmpeg}/bin/ffmpeg -fflags nobuffer -flags low_delay -strict experimental -i rtsp://192.168.100.134:8554/vivatech-simu -c:v libx264 -preset ultrafast -tune zerolatency -g 30 -sc_threshold 0 -start_number 0 -f hls -hls_time 2 -hls_list_size 10 -hls_flags delete_segments+append_list+omit_endlist /var/www/html/hls/stream.m3u8";
-      # ExecStart = "${pkgs.ffmpeg}/bin/ffmpeg -i rtsp://192.168.100.134:8554/vivatech-simu -c:v on -preset -g 30 -sc_threshold 0 -start_number 0 -f hls -hls_time 2 -hls_list_size 7 -hls_flags delete_segments+append_list+omit_endlist /var/www/html/hls/stream.m3u8";
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls/simu";
+      ExecStart = "gst-launch-1.0 -v \
+      udpsrc multicast-group=239.100.51.20 auto-multicast=true port=51200 caps='application/x-rtp, media=video, encoding-name=H264, payload=96' \
+      ! rtpjitterbuffer ! rtph264depay ! h264parse ! mpegtsmux \
+      ! hlssink2 location=/var/www/html/hls/simu/segment_%05d.ts playlist-location=/var/www/html/hls/simu/stream.m3u8 target-duration=2 max-files=10";
+      Restart = "always";
+      RestartSec = "5s";
+    };
+  };
+
+  systemd.services."rtsp-to-hls-real" = {
+    description = "Middleware RTSP to HLS (Real)";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls/real";
+      ExecStart = "gst-launch-1.0 -v \
+      udpsrc multicast-group=239.100.51.20 auto-multicast=true port=51200 caps='application/x-rtp, media=video, encoding-name=H264, payload=96' \
+      ! rtpjitterbuffer ! rtph264depay ! h264parse ! mpegtsmux \
+      ! hlssink2 location=/var/www/html/hls/real/segment_%05d.ts playlist-location=/var/www/html/hls/real/stream.m3u8 target-duration=2 max-files=10";
       Restart = "always";
       RestartSec = "5s";
     };
@@ -108,14 +124,23 @@ in {
         root = "/var/www/html";
         index = "index.html";
       };
+
       locations."/hls/" = {
         root = "/var/www/html";
         extraConfig = ''
           add_header Cache-Control no-cache;
           add_header Access-Control-Allow-Origin *;
+          add_header Access-Control-Allow-Methods 'GET, OPTIONS';
+          add_header Access-Control-Allow-Headers 'Range';
           types {
             application/vnd.apple.mpegurl m3u8;
             video/mp2t ts;
+          }
+          # CORS preflight support
+          if ($request_method = 'OPTIONS') {
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
           }
         '';
       };
