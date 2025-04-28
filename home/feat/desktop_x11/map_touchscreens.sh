@@ -8,7 +8,7 @@ TOUCHSCREEN_IDS=$(xinput list | grep "$TOUCHSCREEN_NAME" | awk -F'id=' '{print $
 
 # First screen = HDMI-1
 # Second screen = HDMI-2
-OUTPUTS=("HDMI-1" "HDMI-2")
+OUTPUTS=("HDMI1" "HDMI2")
 
 i=0
 for ID in $TOUCHSCREEN_IDS; do
