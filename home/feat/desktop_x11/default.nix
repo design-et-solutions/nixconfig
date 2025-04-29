@@ -50,10 +50,10 @@
         command = "unclutter --timeout 0 --jitter 0 --hide-on-touch";
         always = true;
       }
-      # {
-      #   command = "touchegg";
-      #   always = true;
-      # }
+      {
+        command = "touchegg";
+        always = true;
+      }
       {
         command = "picom --backend xrender";
         always = true;
@@ -100,50 +100,20 @@
         <gesture type="TAP" fingers="1" direction="">
           <action type="MOUSE_CLICK">BUTTON=1</action>
         </gesture>
-      </application>
 
-      <application name="firefox-1">
         <gesture type="SWIPE" fingers="3" direction="RIGHT">
           <action type="RUN_COMMAND">
-            <command>xdotool key Tab</command>
+            <command>xdotool key ctrl+r</command>
           </action>
         </gesture>
         <gesture type="SWIPE" fingers="3" direction="LEFT">
           <action type="RUN_COMMAND">
-            <command>xdotool key Tab</command>
-          </action>
-        </gesture>
-      </application>
-
-      <application name="SightCohoma">
-        <gesture type="SWIPE" fingers="3" direction="RIGHT">
-          <action type="RUN_COMMAND">
-            <command>xdotool key Tab</command>
-          </action>
-        </gesture>
-        <gesture type="SWIPE" fingers="3" direction="LEFT">
-          <action type="RUN_COMMAND">
-            <command>xdotool key Tab</command>
+            <command>xdotool key ctrl+r</command>
           </action>
         </gesture>
       </application>
     </touchégg>
   '';
-  # <gesture type="PINCH" fingers="2" direction="IN">
-  #   <action type="RUN_COMMAND">
-  #     <repeat>true</repeat>
-  #     <command>xdotool click 4</command>
-  #     <decreaseCommand>xdotool click 5</decreaseCommand>
-  #   </action>
-  # </gesture>
-
-  # <gesture type="PINCH" fingers="2" direction="OUT">
-  #   <action type="RUN_COMMAND">
-  #     <repeat>true</repeat>
-  #     <command>xdotool click 5</command>
-  #     <decreaseCommand>xdotool click 4</decreaseCommand>
-  #   </action>
-  # </gesture>
 
   home.file."start_precision_landing.sh" = {
     text = ''

@@ -32,7 +32,7 @@ in {
     firewall = {
       enable = true;
       logRefusedConnections = true;
-      allowedTCPPorts = [ 80 443 8080 ];
+      allowedTCPPorts = [ 80 443 8080 8000 ];
       allowedUDPPorts = [ 51200 52200 ];
     };
   };
@@ -41,7 +41,7 @@ in {
 
   virtualisation.docker.enable = true;
 
-  # services.touchegg.enable = true;
+  services.touchegg.enable = true;
 
   environment.systemPackages = with pkgs; [
     libinput
