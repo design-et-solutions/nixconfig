@@ -50,12 +50,16 @@
         command = "unclutter --timeout 0 --jitter 0 --hide-on-touch";
         always = true;
       }
+      # {
+      #   command = "touchegg";
+      #   always = true;
+      # }
       {
-        command = "touchegg";
+        command = "picom --backend xrender";
         always = true;
       }
       {
-        command = "picom --backend xrender";
+        command = "xset s off -dpms";
         always = true;
       }
     ];
