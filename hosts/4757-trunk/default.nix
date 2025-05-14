@@ -5,14 +5,11 @@ in {
     # Includes the Disko module from the disko input in NixOS configuration
     inputs.disko.nixosModules.disko
 
-    ./hardware-configuration.nix
-    ./disko-configuration.nix
-
     ../../nixos/common
-    ../../nixos/users/x11
-
     ../../nixos/feat/desktop_x11
-
+    ../../nixos/users/x11
+    ./disko-configuration.nix
+    ./hardware-configuration.nix
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
@@ -32,7 +29,7 @@ in {
     firewall = {
       enable = true;
       logRefusedConnections = true;
-      allowedTCPPorts = [ 80 443 8080 8000 ];
+      allowedTCPPorts = [ 80 443 8080 8000 8555 ];
       allowedUDPPorts = [ 51200 52200 ];
     };
   };
@@ -47,6 +44,7 @@ in {
     libinput
     unclutter-xfixes
     wmctrl
+    nmap
 
     xdotool
     nginx
@@ -84,69 +82,61 @@ in {
   #     "${pkgs.gst_all_1.gst-plugins-base}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-good}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-ugly}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-libav}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-vaapi}/lib/gstreamer-1.0";
   # };
 
-  services.picom = {
-    enable = true;
-    backend = "xrender";
-    fade = true;
-    shadow = true;
-    settings = {
-      corner-radius = 5;
-      blur-background = true;
-      blur-kern = "7x7box";
-    };
-  };
+  # services.picom = {
+  #   enable = true;
+  #   backend = "xrender";
+  #   fade = true;
+  #   shadow = true;
+  #   settings = {
+  #     corner-radius = 5;
+  #     blur-background = true;
+  #     blur-kern = "7x7box";
+  #   };
+  # };
 
   services.xserver.videoDrivers = [ "intel" ];
 
-  systemd.services."rtsp-to-hls-simu" = {
-    description = "Middleware RTSP to HLS (Simu)";
+  systemd.services."rtsp-to-rtsp-simu" = {
+    description = "Middleware RTSP to RTSP (Simu)";
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls/simu";
-      ExecStart =
-        "${pkgs.ffmpeg}/bin/ffmpeg -fflags nobuffer -flags low_delay -strict experimental -i rtsp://192.168.100.134:8554/vivatech-simu -c:v libx264 -preset ultrafast -tune zerolatency -g 30 -sc_threshold 0 -start_number 0 -f hls -hls_time 2 -hls_list_size 10 -hls_flags delete_segments+append_list+omit_endlist /var/www/html/hls/simu/stream.m3u8";
+      ExecStart = ''
+        ${pkgs.gst_all_1.gstreamer}/bin/gst-launch-1.0 -v \  
+          rtspsrc location=rtsp://192.168.100.134:8554/vivatech-simu latency=0 ! \ 
+          rtph264depay ! h264parse ! decodebin ! \
+          x264enc tune=zerolatency bitrate=1000 speed-preset=ultrafast ! \ 
+          mpegtsmux ! \
+          multifilesink location=/dev/stdout | \ 
+          ncat -lk 8555 --send-only'';
       Restart = "always";
       RestartSec = "5s";
     };
   };
 
-  systemd.services."rtsp-to-hls-real" = {
-    description = "Middleware RTSP to HLS (Real)";
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls/real";
-      ExecStart =
-        "${pkgs.ffmpeg}/bin/ffmpeg -fflags nobuffer -flags low_delay -strict experimental -i rtsp://192.168.100.134:8554/vivatech-real -c:v libx264 -preset ultrafast -tune zerolatency -g 30 -sc_threshold 0 -start_number 0 -f hls -hls_time 2 -hls_list_size 10 -hls_flags delete_segments+append_list+omit_endlist /var/www/html/hls/real/stream.m3u8";
-      # ExecStart = ''
-      #   ${pkgs.gst_all_1.gstreamer}/bin/gst-launch-1.0 -v 
-      #         udpsrc multicast-group=239.100.51.20 auto-multicast=true port=51200 caps='application/x-rtp, media=video, encoding-name=H264, payload=96' 
-      #         ! rtpjitterbuffer ! rtph264depay ! h264parse ! mpegtsmux 
-      #         ! hlssink2 location=/var/www/html/hls/real/segment_%05d.ts playlist-location=/var/www/html/hls/real/stream.m3u8 target-duration=2 max-files=10'';
-      Restart = "always";
-      RestartSec = "5s";
-    };
-  };
+  # systemd.services."rtsp-to-hls-simu" = {
+  #   description = "Middleware RTSP to HLS (Simu)";
+  #   wantedBy = [ "multi-user.target" ];
+  #   serviceConfig = {
+  #     ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls/simu";
+  #     ExecStart =
+  #       "${pkgs.ffmpeg}/bin/ffmpeg -fflags nobuffer -flags low_delay -strict experimental -i rtsp://192.168.100.134:8554/vivatech-simu -c:v libx264 -preset ultrafast -tune zerolatency -g 30 -sc_threshold 0 -start_number 0 -f hls -hls_time 2 -hls_list_size 10 -hls_flags delete_segments+append_list+omit_endlist /var/www/html/hls/simu/stream.m3u8";
+  #     Restart = "always";
+  #     RestartSec = "5s";
+  #   };
+  # };
 
-  services.nginx = {
-    enable = true;
-    virtualHosts."localhost" = {
-      locations."/" = {
-        root = "/var/www/html";
-        index = "index.html";
-      };
-      locations."/hls/" = {
-        root = "/var/www/html";
-        extraConfig = ''
-          add_header Cache-Control no-cache;
-          add_header Access-Control-Allow-Origin *;
-          types {
-            application/vnd.apple.mpegurl m3u8;
-            video/mp2t ts;
-          }
-        '';
-      };
-    };
-  };
+  # systemd.services."rtsp-to-hls-real" = {
+  #   description = "Middleware RTSP to HLS (Real)";
+  #   wantedBy = [ "multi-user.target" ];
+  #   serviceConfig = {
+  #     ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/www/html/hls/real";
+  #     ExecStart =
+  #       "${pkgs.ffmpeg}/bin/ffmpeg -fflags nobuffer -flags low_delay -strict experimental -i rtsp://192.168.100.134:8554/vivatech-real -c:v libx264 -preset ultrafast -tune zerolatency -g 30 -sc_threshold 0 -start_number 0 -f hls -hls_time 2 -hls_list_size 10 -hls_flags delete_segments+append_list+omit_endlist /var/www/html/hls/real/stream.m3u8";
+  #     Restart = "always";
+  #     RestartSec = "5s";
+  #   };
+  # };
+
   # services.nginx = {
   #   enable = true;
   #   virtualHosts."localhost" = {
@@ -154,40 +144,17 @@ in {
   #       root = "/var/www/html";
   #       index = "index.html";
   #     };
-
   #     locations."/hls/" = {
   #       root = "/var/www/html";
   #       extraConfig = ''
   #         add_header Cache-Control no-cache;
   #         add_header Access-Control-Allow-Origin *;
-  #         add_header Access-Control-Allow-Methods 'GET, OPTIONS';
-  #         add_header Access-Control-Allow-Headers 'Range';
   #         types {
   #           application/vnd.apple.mpegurl m3u8;
   #           video/mp2t ts;
   #         }
-  #         # CORS preflight support
-  #         if ($request_method = 'OPTIONS') {
-  #           add_header Content-Length 0;
-  #           add_header Content-Type text/plain;
-  #           return 204;
-  #         }
   #       '';
   #     };
-  #   };
-  # };
-
-  # systemd.services."auto-web-1" = {
-  #   description = "Run Firefox with a specific URL";
-  #   wantedBy = [ "multi-user.target" ];
-  #   serviceConfig = {
-  #     User = "x11";
-  #     ExecStart =
-  #       # "${pkgs.firefox}/bin/firefox --kiosk --new-instance -P p1 --class firefox-1 http://192.168.100.125:3001/left https://demo.astrautm.com";
-  #       "${pkgs.firefox}/bin/firefox --new-instance -P p1 --class firefox-1 http://192.168.100.125:3001/left https://demo.astrautm.com";
-  #     Restart = "always";
-  #     RestartSec = "5s";
-  #     Environment = [ "DISPLAY=:0" "XDG_RUNTIME_DIR=/run/user/1001" ];
   #   };
   # };
 
@@ -224,21 +191,4 @@ in {
     xset -dpms
     xset s noblank
   '';
-
-  # systemd.services."thales-sight" = {
-  #   description = "Run Thales App Sight";
-  #   wantedBy = [ "multi-user.target" ];
-  #   # after = [ "auto-web-2.service" ];
-  #   serviceConfig = {
-  #     User = "x11";
-  #     ExecStart = "${pkgs.bash}/bin/bash /home/x11/start_sight_app.sh";
-  #     Restart = "always";
-  #     RestartSec = "5s";
-  #     Environment = [
-  #       "DISPLAY=:0"
-  #       "XDG_RUNTIME_DIR=/run/user/1001"
-  #       "PATH=${pkgs.docker}/bin:${pkgs.xorg.xhost}/bin:$PATH"
-  #     ];
-  #   };
-  # };
 }
